@@ -1,0 +1,52 @@
+{
+  "apps": [
+    {
+      "id": 101,
+      "title": "Dungeons & Dragons: Console RPG",
+      "version": "1.0.0 (Release)",
+      "installSize": 734720,
+      "installDirectory": "C:\Users\govno\Desktop\zadaniy\ind\Console-DnD-main",
+      "executableRelativePath": "game.exe",
+      "downloadUrl": "https://cdn.steam-clone.local/depot/dnd_rpg.bin",
+      "sha256Checksum": "aecf3c2ab8aca74852bca07b54136cecb3fdafdc35540068ed952c0b89538e0d",
+      "state": 4,
+      "totalPlaytimeSeconds": 3390
+    },
+    {
+      "id": 400,
+      "title": "Portal: Revolution Extended",
+      "version": "1.4.2",
+      "installSize": 8388608,
+      "installDirectory": "steamapps/common/PortalRev",
+      "executableRelativePath": "portal_rev.exe",
+      "downloadUrl": "https://cdn.steam-clone.local/depot/portal.bin",
+      "sha256Checksum": "portal_verified_hash",
+      "state": 4,
+      "totalPlaytimeSeconds": 6203
+    },
+    {
+      "id": 570,
+      "title": "Counter-Strike 2: Source Edition",
+      "version": "2.1.0",
+      "installSize": 26214400,
+      "installDirectory": "steamapps/common/CS2Source",
+      "executableRelativePath": "cs2.exe",
+      "downloadUrl": "https://cdn.steam-clone.local/depot/cs2.bin",
+      "sha256Checksum": "cs2_verified_hash",
+      "state": 4,
+      "totalPlaytimeSeconds": 14223
+    },
+    {
+      "id": 730,
+      "title": "Half-Life 3 (Preview Build)",
+      "version": "0.9.4-alpha",
+      "installSize": 10485760,
+      "installDirectory": "steamapps/common/HalfLife3",
+      "executableRelativePath": "hl3_game.exe",
+      "downloadUrl": "https://cdn.steam-clone.local/depot/730_chunk.bin",
+      "sha256Checksum": "aecf3c2ab8aca74852bca07b54136cecb3fdafdc35540068ed952c0b89538e0d",
+      "state": 4,
+      "totalPlaytimeSeconds": 3609
+    }
+  ]
+}

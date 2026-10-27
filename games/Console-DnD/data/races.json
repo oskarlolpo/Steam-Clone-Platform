@@ -1,0 +1,92 @@
+[
+  {
+    "name": "Драконорождённый",
+    "description": "Драконорождённые очень похожи на прямоходящих гуманоидных драконов, хотя у них нет ни крыльев, ни хвоста. Гордые воины с кровью древних драконов.",
+    "strengthModifier": 2,
+    "constitutionModifier": 0,
+    "dexterityModifier": 0,
+    "intelligenceModifier": 0,
+    "wisdomModifier": 0,
+    "charismaModifier": 1
+  },
+  {
+    "name": "Дварф",
+    "description": "Смелые и выносливые дварфы известны как искусные воины, рудокопы и мастера по обработке камня и металла.",
+    "strengthModifier": 0,
+    "constitutionModifier": 2,
+    "dexterityModifier": 0,
+    "intelligenceModifier": 0,
+    "wisdomModifier": 0,
+    "charismaModifier": 0
+  },
+  {
+    "name": "Эльф",
+    "description": "Эльфы — волшебный народ неземной грации, живущий в мире, но не являющийся полностью его частью. Обладают острым зрением и чутким слухом.",
+    "strengthModifier": 0,
+    "constitutionModifier": 0,
+    "dexterityModifier": 2,
+    "intelligenceModifier": 0,
+    "wisdomModifier": 0,
+    "charismaModifier": 0
+  },
+  {
+    "name": "Гном",
+    "description": "Энергия и энтузиазм гномов к жизни сияют в каждом дюйме их крошечного тела. Они изобретательны, любознательны и полны задора.",
+    "strengthModifier": 0,
+    "constitutionModifier": 0,
+    "dexterityModifier": 0,
+    "intelligenceModifier": 2,
+    "wisdomModifier": 0,
+    "charismaModifier": 0
+  },
+  {
+    "name": "Полуэльф",
+    "description": "Полуэльфы сочетают в себе лучшие качества своих родителей-эльфов и людей: любопытство, изобретательность и амбициозность людей с утонченным вкусом и любовью к природе эльфов.",
+    "strengthModifier": 0,
+    "constitutionModifier": 0,
+    "dexterityModifier": 0,
+    "intelligenceModifier": 0,
+    "wisdomModifier": 0,
+    "charismaModifier": 2
+  },
+  {
+    "name": "Полурослик",
+    "description": "Миниатюрные полурослики выживают в мире, полном гигантских созданий, избегая внимания или, по крайней мере, стараясь никого не обидеть.",
+    "strengthModifier": 0,
+    "constitutionModifier": 0,
+    "dexterityModifier": 2,
+    "intelligenceModifier": 0,
+    "wisdomModifier": 0,
+    "charismaModifier": 0
+  },
+  {
+    "name": "Полуорк",
+    "description": "Полуорки обладают колоссальной физической мощью и неукротимой стойкостью. Многие из них становятся прославленными искателями приключений благодаря своей силе.",
+    "strengthModifier": 2,
+    "constitutionModifier": 1,
+    "dexterityModifier": 0,
+    "intelligenceModifier": 0,
+    "wisdomModifier": 0,
+    "charismaModifier": 0
+  },
+  {
+    "name": "Человек",
+    "description": "Люди — самый адаптивный и амбициозный народ. Они создают великие империи, строят города на века и первыми устремляются навстречу неизведанному.",
+    "strengthModifier": 1,
+    "constitutionModifier": 1,
+    "dexterityModifier": 1,
+    "intelligenceModifier": 1,
+    "wisdomModifier": 1,
+    "charismaModifier": 1
+  },
+  {
+    "name": "Тифлинг",
+    "description": "В тифлингах течет кровь исчадий нижних планов. Они часто сталкиваются с предрассудками и недоверием, но обладают сильной харизмой и тайной магией.",
+    "strengthModifier": 0,
+    "constitutionModifier": 0,
+    "dexterityModifier": 0,
+    "intelligenceModifier": 1,
+    "wisdomModifier": 0,
+    "charismaModifier": 2
+  }
+]

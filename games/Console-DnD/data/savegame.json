@@ -1,0 +1,60 @@
+{
+    "age": 42,
+    "alignment": "Хаотично-злой (Chaotic Evil)",
+    "class": "Колдун",
+    "damage": 12,
+    "defense": 11,
+    "equippedArmor": {
+        "defense": 6,
+        "description": "Темный кожаный дублет со следами ритуалов.",
+        "name": "Потертый кожаный доспех",
+        "price": 10,
+        "rarity": "Обычный",
+        "subtype": "Легкий",
+        "weight": 8.0
+    },
+    "equippedWeapon": {
+        "damage": 4,
+        "description": "Деревянный скипетр, излучающий слабое потустороннее тепло.",
+        "name": "Старый скипетр",
+        "price": 10,
+        "rarity": "Обычный",
+        "subtype": "Магический фокус",
+        "weight": 8.0
+    },
+    "experience": 125,
+    "gender": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000 \u0000\u0000\u0000",
+    "gold": 59,
+    "health": 1,
+    "inventory_armors": [],
+    "inventory_potions": [
+        {
+            "description": "Восстанавливает 35 HP",
+            "health": 35,
+            "mana": 0,
+            "name": "Зелье среднего лечения",
+            "price": 20,
+            "rarity": "Common",
+            "stamina": 0,
+            "weight": 0.5
+        }
+    ],
+    "inventory_weapons": [],
+    "level": 2,
+    "mana": 36,
+    "maxHealth": 114,
+    "maxMana": 111,
+    "maxStamina": 100,
+    "name": "\u0000\u0000\u0000",
+    "nextLevelExperience": 300,
+    "race": "Гном",
+    "stamina": 100,
+    "stats": {
+        "charisma": 17,
+        "constitution": 9,
+        "dexterity": 11,
+        "intelligence": 4,
+        "strength": 16,
+        "wisdom": 13
+    }
+}

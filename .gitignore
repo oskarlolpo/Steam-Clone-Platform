@@ -1,0 +1,29 @@
+# Visual Studio & C++ temporary files
+.vs/
+build/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+x64/
+x86/
+Debug/
+Release/
+*.obj
+*.o
+*.pdb
+*.idb
+*.ilk
+*.tlog
+*.log
+
+# .NET / C# temporary files
+bin/
+obj/
+*.dll
+*.exe
+!steamapps/common/**/*.exe
+
+# OS generated files
+.DS_Store
+Thumbs.db

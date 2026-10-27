@@ -1,0 +1,49 @@
+﻿#ifndef ITEM_H // If the preprocessor ITEM_H is not defined
+#define ITEM_H // Define the preprocessor ITEM_H
+
+#include <iostream> // Include the input/output library
+#include <string>   // Include the string library
+#include <sstream>  // Include the string stream library
+
+class Item
+{
+protected:
+    // Attributes
+    std::string name;
+    std::string description;
+    std::string rarity;
+
+    float weight;
+    int price;
+
+    std::string type;
+    std::string subtype;
+
+public:
+    // Constructors
+    Item();
+    Item(std::string name, std::string description, std::string rarity, float weight, int price, std::string type, std::string subtype);
+
+    // Getters
+    std::string getName();
+    std::string getDescription();
+    std::string getRarity();
+    float getWeight();
+    int getPrice();
+    std::string getType();
+    std::string getSubtype();
+
+    // Setters
+    void setName(std::string name);
+    void setDescription(std::string description);
+    void setRarity(std::string rarity);
+    void setWeight(float weight);
+    void setPrice(int value);
+    void setType(std::string type);
+    void setSubtype(std::string subtype);
+
+    // Methods
+    std::string toString();
+};
+
+#endif // End of ITEM_H preprossesor
