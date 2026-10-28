@@ -166,110 +166,159 @@ namespace CS2WinFormsDemo
             SoundManager.PlayReload();
         }
 
-        public void Render(Graphics g, int screenW, int screenH, float bobX, float bobY)
+        public void Render(
+            Graphics g,
+            int screenW,
+            int screenH,
+            float bobX,
+            float bobY,
+            float pitch,
+            float posZ,
+            float swayX,
+            float swayY)
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            // Weapon positioning in first-person 3D perspective
-            float baseGunX = screenW * 0.55f + bobX;
-            float baseGunY = screenH * 0.62f + bobY + RecoilOffset;
+            // Screen center / aim point (with recoil kick)
+            float aimX = screenW * 0.50f;
+            float aimY = screenH * 0.50f - RecoilPitch * 1.2f;
+
+            // Base weapon positioning in first-person 3D perspective
+            float baseGunX = screenW * 0.55f + bobX + swayX;
+            float baseGunY = screenH * 0.60f + bobY + swayY + RecoilOffset * 0.75f;
+
+            // Pitch reaction: weapon tilts with camera pitch
+            // Looking up (pitch > 0) pulls the gun stock down so barrel points up towards crosshair
+            // Looking down (pitch < 0) pushes gun stock up so barrel points down towards crosshair
+            float pitchInfluence = pitch * 0.44f;
+            baseGunY += pitchInfluence;
+
+            // Crouch & jump reaction (inertial vertical lag)
+            float heightInfluence = posZ * 38f;
+            baseGunY -= heightInfluence;
 
             if (IsReloading)
             {
                 float reloadPhase = (float)Math.Sin((1.0 - (ReloadTimer / ReloadTime)) * Math.PI);
-                baseGunY += reloadPhase * 140f;
-                baseGunX += reloadPhase * 20f;
+                baseGunY += reloadPhase * 135f;
+                baseGunX += reloadPhase * 22f;
             }
 
             switch (Type)
             {
                 case WeaponType.Ak47:
-                    RenderAk47FirstPerson(g, baseGunX, baseGunY, screenW, screenH);
+                    RenderAk47FirstPerson(g, baseGunX, baseGunY, screenW, screenH, aimX, aimY, pitch);
                     break;
                 case WeaponType.Deagle:
-                    RenderDeagleFirstPerson(g, baseGunX, baseGunY, screenW, screenH);
+                    RenderDeagleFirstPerson(g, baseGunX, baseGunY, screenW, screenH, aimX, aimY, pitch);
                     break;
                 case WeaponType.Knife:
-                    RenderKnifeFirstPerson(g, baseGunX, baseGunY, screenW, screenH);
+                    RenderKnifeFirstPerson(g, baseGunX, baseGunY, screenW, screenH, aimX, aimY, pitch);
                     break;
             }
         }
 
-        private void RenderAk47FirstPerson(Graphics g, float gunX, float gunY, int screenW, int screenH)
+        private void RenderAk47FirstPerson(Graphics g, float gunX, float gunY, int screenW, int screenH, float aimX, float aimY, float pitch)
         {
-            // AK-47 in true first-person 3D perspective aiming towards crosshair
-            // Center of screen / aim point:
-            float targetAimX = screenW * 0.50f;
-            float targetAimY = screenH * 0.49f;
-
-            // Recoil kick applied to muzzle
+            // AK-47 in realistic first-person 3D perspective tracking crosshair
             float kickY = RecoilPitch * 1.2f;
+            float muzX = aimX + 16f + (gunX - screenW * 0.55f) * 0.15f;
+            float muzY = aimY + 28f - kickY * 0.5f;
 
-            // Muzzle position (aimed forward towards crosshair)
-            float muzX = targetAimX + 15f;
-            float muzY = targetAimY + 35f - kickY;
-
-            // Receiver / rear block (close to player right eye/shoulder)
+            // Receiver / rear coordinates (near character shoulder/chest)
             float recRightX = gunX + 160f;
-            float recRightY = gunY + 110f;
-            float recLeftX = gunX + 20f;
-            float recLeftY = gunY + 70f;
+            float recRightY = gunY + 105f;
+            float recLeftX = gunX + 22f;
+            float recLeftY = gunY + 62f;
 
-            // 1. Hands & Forearm (Tactical Navy/Grey Glove)
-            using (var gloveBrush = new SolidBrush(Color.FromArgb(42, 50, 60)))
-            using (var gloveDark = new SolidBrush(Color.FromArgb(28, 34, 42)))
-            using (var skinBrush = new SolidBrush(Color.FromArgb(205, 160, 130)))
+            // 1. Hands & Arms (Tactical Navy/Grey Glove with reinforced knuckles)
+            using (var gloveBase = new SolidBrush(Color.FromArgb(36, 44, 54)))
+            using (var gloveDark = new SolidBrush(Color.FromArgb(24, 28, 36)))
+            using (var glovePad = new SolidBrush(Color.FromArgb(52, 62, 74)))
+            using (var sleeveBrush = new SolidBrush(Color.FromArgb(48, 56, 48))) // Tactical green/grey sleeve
             {
-                // Right Arm coming from bottom-right corner
+                // Right Arm coming from bottom right
                 PointF[] rightArm = {
-                    new PointF(screenW * 0.70f + RecoilOffset * 0.5f, screenH),
-                    new PointF(screenW * 0.95f, screenH),
-                    new PointF(screenW * 0.88f, recRightY + 40f),
-                    new PointF(recRightX - 10f, recRightY + 30f)
+                    new PointF(screenW * 0.72f + RecoilOffset * 0.4f, screenH),
+                    new PointF(screenW * 0.98f, screenH),
+                    new PointF(screenW * 0.90f, recRightY + 45f),
+                    new PointF(recRightX - 12f, recRightY + 32f)
                 };
-                g.FillPolygon(gloveBrush, rightArm);
+                g.FillPolygon(sleeveBrush, rightArm);
 
-                // Right Hand gripping pistol grip
-                g.FillEllipse(gloveBrush, recRightX - 45f, recRightY + 10f, 65f, 60f);
+                // Right Hand wrapping around pistol grip
+                g.FillEllipse(gloveBase, recRightX - 44f, recRightY + 8f, 62f, 58f);
+                g.FillEllipse(glovePad, recRightX - 32f, recRightY + 18f, 36f, 32f);
 
-                // Left Arm & Hand supporting handguard from under-left
-                float leftHandX = muzX + (recLeftX - muzX) * 0.45f;
-                float leftHandY = muzY + (recLeftY - muzY) * 0.45f + 25f;
+                // Left Arm & Hand reaching from bottom left to support handguard
+                float leftHandX = muzX + (recLeftX - muzX) * 0.48f;
+                float leftHandY = muzY + (recLeftY - muzY) * 0.48f + 24f;
 
                 PointF[] leftArm = {
-                    new PointF(screenW * 0.35f, screenH),
-                    new PointF(screenW * 0.50f, screenH),
-                    new PointF(leftHandX + 45f, leftHandY + 25f),
-                    new PointF(leftHandX - 15f, leftHandY + 10f)
+                    new PointF(screenW * 0.32f, screenH),
+                    new PointF(screenW * 0.48f, screenH),
+                    new PointF(leftHandX + 44f, leftHandY + 26f),
+                    new PointF(leftHandX - 16f, leftHandY + 12f)
                 };
-                g.FillPolygon(gloveBrush, leftArm);
+                g.FillPolygon(sleeveBrush, leftArm);
 
-                // Left Glove Fingers wrapping under handguard
-                g.FillEllipse(gloveDark, leftHandX - 20f, leftHandY - 5f, 50f, 40f);
+                // Left Glove wrapping under wooden handguard
+                g.FillEllipse(gloveBase, leftHandX - 22f, leftHandY - 4f, 52f, 42f);
+                g.FillEllipse(gloveDark, leftHandX - 14f, leftHandY + 4f, 38f, 26f);
             }
 
-            // 2. Curved Magazine (Bakelite Orange/Brown)
-            using (var magBrush = new SolidBrush(Color.FromArgb(175, 80, 30)))
-            using (var magDark = new SolidBrush(Color.FromArgb(120, 50, 20)))
+            // 2. Pistol Grip (angled laminate/polymer)
+            using (var gripBrush = new SolidBrush(Color.FromArgb(110, 52, 22)))
+            using (var gripDark = new SolidBrush(Color.FromArgb(70, 32, 14)))
             {
-                float magTopX = recLeftX + 30f;
-                float magTopY = recLeftY + 30f;
+                PointF[] grip = {
+                    new PointF(recRightX - 38f, recRightY + 15f),
+                    new PointF(recRightX - 12f, recRightY + 18f),
+                    new PointF(recRightX - 4f, recRightY + 75f),
+                    new PointF(recRightX - 28f, recRightY + 72f)
+                };
+                g.FillPolygon(gripBrush, grip);
+                g.DrawPolygon(new Pen(gripDark, 2), grip);
+            }
+
+            // 3. Curved Bakelite Magazine (Iconic AK orange/amber with ribs)
+            using (var magBrush = new SolidBrush(Color.FromArgb(178, 86, 32)))
+            using (var magDark = new SolidBrush(Color.FromArgb(122, 54, 18)))
+            using (var magBase = new SolidBrush(Color.FromArgb(45, 48, 52)))
+            {
+                float magTopX = recLeftX + 32f;
+                float magTopY = recLeftY + 28f;
                 PointF[] magPoints = {
                     new PointF(magTopX, magTopY),
-                    new PointF(magTopX + 35f, magTopY + 10f),
-                    new PointF(magTopX + 15f, magTopY + 95f),
-                    new PointF(magTopX - 25f, magTopY + 80f)
+                    new PointF(magTopX + 36f, magTopY + 10f),
+                    new PointF(magTopX + 16f, magTopY + 102f),
+                    new PointF(magTopX - 26f, magTopY + 86f)
                 };
                 g.FillPolygon(magBrush, magPoints);
                 g.DrawPolygon(new Pen(magDark, 2), magPoints);
+
+                // Horizontal reinforcement ribs on magazine
+                using var ribPen = new Pen(magDark, 2.5f);
+                for (int r = 1; r <= 4; r++)
+                {
+                    float factor = r * 0.18f;
+                    float rx1 = magPoints[0].X * (1 - factor) + magPoints[3].X * factor;
+                    float ry1 = magPoints[0].Y * (1 - factor) + magPoints[3].Y * factor;
+                    float rx2 = magPoints[1].X * (1 - factor) + magPoints[2].X * factor;
+                    float ry2 = magPoints[1].Y * (1 - factor) + magPoints[2].Y * factor;
+                    g.DrawLine(ribPen, rx1 + 3, ry1, rx2 - 3, ry2);
+                }
+
+                // Steel base plate
+                g.FillRectangle(magBase, magPoints[3].X, magPoints[3].Y - 2, 42f, 8f);
             }
 
-            // 3. Receiver & Dust Cover (Perspective Quad)
-            using (var metalBrush = new SolidBrush(Color.FromArgb(48, 52, 58)))
-            using (var metalTop = new SolidBrush(Color.FromArgb(70, 75, 82)))
+            // 4. Stamped Steel Receiver & Dust Cover
+            using (var metalTop = new SolidBrush(Color.FromArgb(68, 74, 82)))
             using (var metalDark = new SolidBrush(Color.FromArgb(30, 33, 38)))
+            using (var boltBrush = new SolidBrush(Color.FromArgb(92, 98, 108)))
             {
-                // Top receiver cover tapering towards front
+                // Top receiver dust cover tapering in perspective
                 PointF[] topReceiver = {
                     new PointF(muzX + (recLeftX - muzX) * 0.65f, muzY + (recLeftY - muzY) * 0.65f - 10f),
                     new PointF(muzX + (recRightX - muzX) * 0.65f, muzY + (recRightY - muzY) * 0.65f - 8f),
@@ -281,16 +330,23 @@ namespace CS2WinFormsDemo
                 // Right side of receiver
                 PointF[] sideReceiver = {
                     new PointF(muzX + (recRightX - muzX) * 0.65f, muzY + (recRightY - muzY) * 0.65f - 8f),
-                    new PointF(muzX + (recRightX - muzX) * 0.65f, muzY + (recRightY - muzY) * 0.65f + 25f),
-                    new PointF(recRightX, recRightY + 35f),
+                    new PointF(muzX + (recRightX - muzX) * 0.65f, muzY + (recRightY - muzY) * 0.65f + 26f),
+                    new PointF(recRightX, recRightY + 36f),
                     new PointF(recRightX, recRightY - 15f)
                 };
                 g.FillPolygon(metalDark, sideReceiver);
+
+                // Bolt carrier & charging handle
+                float boltX = recRightX - 42f;
+                float boltY = recRightY - 5f;
+                g.FillRectangle(boltBrush, boltX, boltY, 26f, 10f);
+                g.FillEllipse(boltBrush, boltX + 22f, boltY - 2f, 9f, 14f);
             }
 
-            // 4. Wooden Handguard & Gas Tube (Perspective trapezoid)
-            using (var woodBrush = new SolidBrush(Color.FromArgb(145, 75, 30)))
-            using (var woodDark = new SolidBrush(Color.FromArgb(100, 48, 18)))
+            // 5. Wooden Handguard & Gas Tube (Laminated Wood with wood grain)
+            using (var woodBase = new SolidBrush(Color.FromArgb(156, 84, 36)))
+            using (var woodGrain = new Pen(Color.FromArgb(112, 54, 20), 1.5f))
+            using (var woodDark = new SolidBrush(Color.FromArgb(98, 46, 18)))
             {
                 float midX1 = muzX + (recLeftX - muzX) * 0.65f;
                 float midY1 = muzY + (recLeftY - muzY) * 0.65f;
@@ -299,163 +355,218 @@ namespace CS2WinFormsDemo
 
                 PointF[] handguard = {
                     new PointF(frontX1, frontY1 - 8f),
-                    new PointF(frontX1 + 18f, frontY1 - 6f),
-                    new PointF(midX1 + 35f, midY1 - 8f),
+                    new PointF(frontX1 + 19f, frontY1 - 6f),
+                    new PointF(midX1 + 36f, midY1 - 8f),
                     new PointF(midX1, midY1 - 10f)
                 };
-                g.FillPolygon(woodBrush, handguard);
+                g.FillPolygon(woodBase, handguard);
                 g.DrawPolygon(new Pen(woodDark, 2), handguard);
+
+                // Wood grain lines
+                g.DrawLine(woodGrain, frontX1 + 4f, frontY1 - 4f, midX1 + 10f, midY1 - 5f);
+                g.DrawLine(woodGrain, frontX1 + 12f, frontY1 - 2f, midX1 + 25f, midY1 - 3f);
             }
 
-            // 5. Barrel & Front Sight Tower (aiming at crosshair)
-            using (var barrelBrush = new SolidBrush(Color.FromArgb(35, 38, 42)))
-            using (var sightBrush = new SolidBrush(Color.FromArgb(25, 27, 30)))
+            // 6. Barrel, Front Sight Post & Muzzle Brake
+            using (var barrelBrush = new SolidBrush(Color.FromArgb(32, 35, 40)))
+            using (var sightBrush = new SolidBrush(Color.FromArgb(24, 26, 30)))
             {
-                // Barrel extending to muzzle
+                // Barrel extending towards muzzle
                 PointF[] barrel = {
                     new PointF(muzX - 5f, muzY),
-                    new PointF(muzX + 10f, muzY),
-                    new PointF(muzX + (recLeftX - muzX) * 0.22f + 14f, muzY + (recLeftY - muzY) * 0.22f),
-                    new PointF(muzX + (recLeftX - muzX) * 0.22f - 2f, muzY + (recLeftY - muzY) * 0.22f)
+                    new PointF(muzX + 11f, muzY),
+                    new PointF(muzX + (recLeftX - muzX) * 0.22f + 15f, muzY + (recLeftY - muzY) * 0.22f),
+                    new PointF(muzX + (recLeftX - muzX) * 0.22f - 3f, muzY + (recLeftY - muzY) * 0.22f)
                 };
                 g.FillPolygon(barrelBrush, barrel);
 
-                // Front Sight Post (lined up right below crosshair)
-                g.FillRectangle(sightBrush, muzX + 1f, muzY - 14f, 4f, 15f);
-                // Sight wings
-                g.DrawArc(new Pen(sightBrush, 2), muzX - 5f, muzY - 18f, 16f, 16f, 180, 180);
+                // Front Sight Post & Protective Wings
+                g.FillRectangle(sightBrush, muzX + 2f, muzY - 16f, 4f, 17f);
+                g.DrawArc(new Pen(sightBrush, 2.5f), muzX - 5f, muzY - 20f, 18f, 18f, 180, 180);
 
-                // Slanted AK Muzzle Brake
-                g.FillRectangle(barrelBrush, muzX - 3f, muzY - 4f, 12f, 10f);
+                // Slanted AK Muzzle Compensator
+                PointF[] comp = {
+                    new PointF(muzX - 4f, muzY - 5f),
+                    new PointF(muzX + 12f, muzY - 9f),
+                    new PointF(muzX + 14f, muzY + 6f),
+                    new PointF(muzX - 2f, muzY + 7f)
+                };
+                g.FillPolygon(barrelBrush, comp);
             }
 
-            // 6. Muzzle Flash (3D conical flame erupting forward from muzzle)
+            // 7. Dynamic Muzzle Flash
             if (MuzzleFlashTimer > 0)
             {
-                Render3DMuzzleFlash(g, muzX + 3f, muzY);
+                Render3DMuzzleFlash(g, muzX + 4f, muzY - 2f);
             }
         }
 
-        private void RenderDeagleFirstPerson(Graphics g, float gunX, float gunY, int screenW, int screenH)
+        private void RenderDeagleFirstPerson(Graphics g, float gunX, float gunY, int screenW, int screenH, float aimX, float aimY, float pitch)
         {
             // Desert Eagle in true first-person 3D perspective centered towards aim
-            float aimX = screenW * 0.50f;
-            float aimY = screenH * 0.49f;
-
             float kickY = RecoilPitch * 1.5f;
-            float muzX = aimX + 8f;
-            float muzY = aimY + 45f - kickY;
+            float muzX = aimX + 8f + (gunX - screenW * 0.55f) * 0.12f;
+            float muzY = aimY + 42f - kickY * 0.7f;
 
-            float gripX = gunX + 70f;
-            float gripY = gunY + 90f;
+            float gripX = gunX + 68f;
+            float gripY = gunY + 85f;
 
-            // Gloved Hands gripping pistol
-            using (var gloveBrush = new SolidBrush(Color.FromArgb(42, 50, 60)))
-            using (var gloveDark = new SolidBrush(Color.FromArgb(28, 34, 42)))
+            // 1. Two-Handed Tactical Gloves
+            using (var gloveBrush = new SolidBrush(Color.FromArgb(36, 44, 54)))
+            using (var gloveDark = new SolidBrush(Color.FromArgb(24, 28, 36)))
+            using (var sleeveBrush = new SolidBrush(Color.FromArgb(48, 56, 48)))
             {
-                // Left Support Hand
-                g.FillEllipse(gloveDark, gripX - 45f, gripY + 20f, 65f, 65f);
+                // Left Support Hand wrapped around bottom of grip
+                g.FillEllipse(gloveDark, gripX - 48f, gripY + 22f, 68f, 68f);
 
                 // Right Hand & Arm
                 PointF[] rightArm = {
-                    new PointF(screenW * 0.65f, screenH),
-                    new PointF(screenW * 0.90f, screenH),
-                    new PointF(gripX + 45f, gripY + 50f),
-                    new PointF(gripX - 10f, gripY + 40f)
+                    new PointF(screenW * 0.66f, screenH),
+                    new PointF(screenW * 0.92f, screenH),
+                    new PointF(gripX + 48f, gripY + 54f),
+                    new PointF(gripX - 12f, gripY + 42f)
                 };
-                g.FillPolygon(gloveBrush, rightArm);
-                g.FillEllipse(gloveBrush, gripX - 25f, gripY + 10f, 60f, 60f);
+                g.FillPolygon(sleeveBrush, rightArm);
+                g.FillEllipse(gloveBrush, gripX - 26f, gripY + 12f, 64f, 64f);
             }
 
-            // Silver / Chrome Slide in perspective
-            using (var chrome = new SolidBrush(Color.FromArgb(215, 220, 230)))
-            using (var chromeTop = new SolidBrush(Color.FromArgb(240, 245, 255)))
-            using (var chromeDark = new SolidBrush(Color.FromArgb(140, 145, 155)))
-            using (var blackGrip = new SolidBrush(Color.FromArgb(25, 25, 28)))
+            // 2. Black Textured Grip with Eagle Medallion
+            using (var blackGrip = new SolidBrush(Color.FromArgb(24, 25, 28)))
+            using (var medallion = new SolidBrush(Color.FromArgb(195, 175, 120)))
             {
-                // Grip
                 PointF[] gripPoly = {
-                    new PointF(gripX - 15f, gripY + 10f),
-                    new PointF(gripX + 25f, gripY + 10f),
-                    new PointF(gripX + 35f, gripY + 90f),
-                    new PointF(gripX - 5f, gripY + 85f)
+                    new PointF(gripX - 16f, gripY + 10f),
+                    new PointF(gripX + 26f, gripY + 10f),
+                    new PointF(gripX + 36f, gripY + 92f),
+                    new PointF(gripX - 6f, gripY + 86f)
                 };
                 g.FillPolygon(blackGrip, gripPoly);
+                g.FillEllipse(medallion, gripX + 4f, gripY + 40f, 10f, 10f);
+            }
 
-                // Top Slide
+            // 3. Polished Chrome / Stainless Steel Slide in 3D Perspective
+            using (var chromeTop = new SolidBrush(Color.FromArgb(242, 246, 252)))
+            using (var chromeSide = new SolidBrush(Color.FromArgb(195, 202, 212)))
+            using (var chromeDark = new SolidBrush(Color.FromArgb(135, 142, 152)))
+            using (var blackDetail = new SolidBrush(Color.FromArgb(28, 30, 34)))
+            {
+                // Top Slide Surface
                 PointF[] slideTop = {
                     new PointF(muzX - 10f, muzY - 10f),
                     new PointF(muzX + 18f, muzY - 10f),
-                    new PointF(gripX + 35f, gripY - 20f),
-                    new PointF(gripX - 15f, gripY - 20f)
+                    new PointF(gripX + 36f, gripY - 22f),
+                    new PointF(gripX - 16f, gripY - 22f)
                 };
                 g.FillPolygon(chromeTop, slideTop);
 
-                // Side Slide
+                // Right Slide Wall
                 PointF[] slideSide = {
                     new PointF(muzX + 18f, muzY - 10f),
-                    new PointF(muzX + 18f, muzY + 15f),
-                    new PointF(gripX + 35f, gripY + 15f),
-                    new PointF(gripX + 35f, gripY - 20f)
+                    new PointF(muzX + 18f, muzY + 16f),
+                    new PointF(gripX + 36f, gripY + 16f),
+                    new PointF(gripX + 36f, gripY - 22f)
                 };
                 g.FillPolygon(chromeDark, slideSide);
 
-                // Left Slide face
+                // Left Slide Wall
                 PointF[] slideLeft = {
                     new PointF(muzX - 10f, muzY - 10f),
-                    new PointF(muzX - 10f, muzY + 15f),
-                    new PointF(gripX - 15f, gripY + 15f),
-                    new PointF(gripX - 15f, gripY - 20f)
+                    new PointF(muzX - 10f, muzY + 16f),
+                    new PointF(gripX - 16f, gripY + 16f),
+                    new PointF(gripX - 16f, gripY - 22f)
                 };
-                g.FillPolygon(chrome, slideLeft);
+                g.FillPolygon(chromeSide, slideLeft);
 
-                // Front Sight & Rear Sight notch
-                g.FillRectangle(blackGrip, muzX + 2f, muzY - 18f, 4f, 9f);
-                g.FillRectangle(blackGrip, gripX - 8f, gripY - 26f, 5f, 7f);
-                g.FillRectangle(blackGrip, gripX + 18f, gripY - 26f, 5f, 7f);
+                // Rear Slide Serrations
+                using var serrationPen = new Pen(chromeDark, 2f);
+                for (int s = 0; s < 4; s++)
+                {
+                    float sx = gripX + 16f + s * 5f;
+                    g.DrawLine(serrationPen, sx, gripY - 16f, sx, gripY + 8f);
+                }
+
+                // Front Sight & Rear Notch
+                g.FillRectangle(blackDetail, muzX + 2f, muzY - 19f, 4f, 10f);
+                g.FillRectangle(blackDetail, gripX - 9f, gripY - 28f, 5f, 8f);
+                g.FillRectangle(blackDetail, gripX + 19f, gripY - 28f, 5f, 8f);
+
+                // Massive .50 AE Muzzle Bore
+                g.FillEllipse(blackDetail, muzX + 1f, muzY - 4f, 9f, 9f);
             }
 
-            // Muzzle Flash
+            // 4. Muzzle Flash
             if (MuzzleFlashTimer > 0)
             {
-                Render3DMuzzleFlash(g, muzX + 4f, muzY - 2f, 1.25f);
+                Render3DMuzzleFlash(g, muzX + 5f, muzY - 1f, 1.35f);
             }
         }
 
-        private void RenderKnifeFirstPerson(Graphics g, float gunX, float gunY, int screenW, int screenH)
+        private void RenderKnifeFirstPerson(Graphics g, float gunX, float gunY, int screenW, int screenH, float aimX, float aimY, float pitch)
         {
-            // Tactical Knife in first-person view
-            float aimX = screenW * 0.50f;
-            float aimY = screenH * 0.52f;
+            // Tactical Combat Knife in first-person view
+            float slashAngle = SlashTimer * 75f;
+            float knifeX = gunX + 35f - SlashTimer * 110f;
+            float knifeY = gunY + 35f + SlashTimer * 35f;
 
-            float slashAngle = SlashTimer * 60f;
-            float knifeX = gunX + 40f - SlashTimer * 90f;
-            float knifeY = gunY + 40f + SlashTimer * 30f;
+            // Attack slash motion trail
+            if (SlashTimer > 0)
+            {
+                using var trailPen = new Pen(Color.FromArgb((int)(200 * SlashTimer), 240, 245, 255), 5f);
+                using var trailGlow = new Pen(Color.FromArgb((int)(120 * SlashTimer), 255, 60, 60), 12f);
+                PointF[] trailPts = {
+                    new PointF(gunX + 80f, gunY + 20f),
+                    new PointF(aimX + 30f, aimY + 5f),
+                    new PointF(aimX - 60f, aimY - 15f)
+                };
+                g.DrawCurve(trailGlow, trailPts);
+                g.DrawCurve(trailPen, trailPts);
+            }
 
-            using (var gloveBrush = new SolidBrush(Color.FromArgb(42, 50, 60)))
-            using (var bladeBrush = new SolidBrush(Color.FromArgb(220, 225, 235)))
-            using (var redAccent = new SolidBrush(Color.FromArgb(200, 35, 45)))
-            using (var handleBrush = new SolidBrush(Color.FromArgb(25, 27, 30)))
+            using (var gloveBrush = new SolidBrush(Color.FromArgb(36, 44, 54)))
+            using (var gloveDark = new SolidBrush(Color.FromArgb(24, 28, 36)))
+            using (var bladeSteel = new SolidBrush(Color.FromArgb(230, 235, 245)))
+            using (var bladeDark = new SolidBrush(Color.FromArgb(42, 46, 52)))
+            using (var redAccent = new SolidBrush(Color.FromArgb(215, 40, 50)))
+            using (var handleBrush = new SolidBrush(Color.FromArgb(26, 28, 32)))
             {
                 // Glove / Fist
-                g.FillEllipse(gloveBrush, knifeX - 15f, knifeY + 20f, 65f, 55f);
+                g.FillEllipse(gloveBrush, knifeX - 16f, knifeY + 20f, 68f, 58f);
+                g.FillEllipse(gloveDark, knifeX - 6f, knifeY + 30f, 45f, 35f);
 
-                // Handle
-                g.FillRectangle(handleBrush, knifeX - 5f, knifeY + 15f, 18f, 45f);
+                // Knife Handle with finger grooves
+                PointF[] handle = {
+                    new PointF(knifeX - 6f, knifeY + 16f),
+                    new PointF(knifeX + 16f, knifeY + 16f),
+                    new PointF(knifeX + 18f, knifeY + 68f),
+                    new PointF(knifeX - 4f, knifeY + 68f)
+                };
+                g.FillPolygon(handleBrush, handle);
 
                 // Blade pointing towards crosshair
-                PointF[] blade = {
-                    new PointF(knifeX + 4f, knifeY + 15f),
-                    new PointF(aimX + 20f - slashAngle, aimY + 10f),
-                    new PointF(aimX - slashAngle, aimY - 5f),
-                    new PointF(knifeX - 6f, knifeY + 15f)
+                PointF[] bladeSpine = {
+                    new PointF(knifeX + 5f, knifeY + 16f),
+                    new PointF(aimX + 22f - slashAngle, aimY + 12f),
+                    new PointF(aimX - slashAngle, aimY - 6f),
+                    new PointF(knifeX - 7f, knifeY + 16f)
                 };
-                g.FillPolygon(bladeBrush, blade);
-                g.FillPolygon(redAccent, new PointF[] {
-                    new PointF(knifeX + 1f, knifeY + 14f),
-                    new PointF(aimX + 8f - slashAngle, aimY + 4f),
-                    new PointF(knifeX - 3f, knifeY + 14f)
-                });
+                g.FillPolygon(bladeDark, bladeSpine);
+
+                // Sharpened Cutting Bevel
+                PointF[] bladeEdge = {
+                    new PointF(knifeX - 7f, knifeY + 16f),
+                    new PointF(aimX - slashAngle, aimY - 6f),
+                    new PointF(aimX + 12f - slashAngle, aimY + 4f),
+                    new PointF(knifeX + 1f, knifeY + 15f)
+                };
+                g.FillPolygon(bladeSteel, bladeEdge);
+
+                // Red Tactical Stripe
+                PointF[] stripe = {
+                    new PointF(knifeX + 2f, knifeY + 15f),
+                    new PointF(aimX + 9f - slashAngle, aimY + 5f),
+                    new PointF(knifeX - 2f, knifeY + 15f)
+                };
+                g.FillPolygon(redAccent, stripe);
             }
         }
 

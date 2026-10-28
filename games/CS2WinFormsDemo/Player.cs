@@ -37,6 +37,10 @@ namespace CS2WinFormsDemo
         public float BobAmountX { get; set; } = 0f;
         public float BobAmountY { get; set; } = 0f;
 
+        // Dynamic mouse sway & viewmodel lag
+        public float MouseSwayX { get; set; } = 0f;
+        public float MouseSwayY { get; set; } = 0f;
+
         private const double Radius = 0.25;
 
         public void Rotate(double angle)
@@ -56,12 +60,18 @@ namespace CS2WinFormsDemo
             Pitch = Math.Clamp(Pitch, -160f, 160f);
         }
 
+        public void AddMouseSway(float dx, float dy)
+        {
+            MouseSwayX = Math.Clamp(MouseSwayX - dx * 0.12f, -32f, 32f);
+            MouseSwayY = Math.Clamp(MouseSwayY - dy * 0.12f, -22f, 22f);
+        }
+
         public void Jump()
         {
-            // Only jump if on ground
-            if (PosZ <= CrouchOffset + 0.02)
+            // Jump if on ground or in crouch transition
+            if (PosZ <= CrouchOffset + 0.06)
             {
-                ZVelocity = 0.65;
+                ZVelocity = 0.72;
                 SoundManager.PlayJump();
             }
         }
@@ -146,6 +156,10 @@ namespace CS2WinFormsDemo
                 BobAmountY = (float)Math.Sin(BobCycle * 0.5f) * 1.5f;
                 BobCycle += dt * 2f;
             }
+
+            // Dynamic Mouse Sway decay
+            MouseSwayX += (0f - MouseSwayX) * Math.Min(1f, dt * 10f);
+            MouseSwayY += (0f - MouseSwayY) * Math.Min(1f, dt * 10f);
         }
     }
 }

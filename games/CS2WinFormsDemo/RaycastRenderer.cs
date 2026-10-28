@@ -228,11 +228,19 @@ namespace CS2WinFormsDemo
             targetGraphics.DrawImage(_renderBitmap, 0, 0, targetW, targetH);
 
             // 6. Draw 3D Viewmodel (Gun & Hands in first-person perspective)
-            weapon.Render(targetGraphics, targetW, targetH, player.BobAmountX, player.BobAmountY);
+            weapon.Render(
+                targetGraphics,
+                targetW,
+                targetH,
+                player.BobAmountX,
+                player.BobAmountY,
+                player.Pitch,
+                (float)player.PosZ,
+                player.MouseSwayX,
+                player.MouseSwayY);
 
             // 7. Draw HUD (Crosshair, Radar, Health, Ammo, Timer, Door hints)
-            float scaledHorizon = (float)horizon * targetH / RenderHeight;
-            DrawTacticalHud(targetGraphics, targetW, targetH, player, weapon, enemies, hitMarkerTimer, killfeed, roundTimerRemaining, nearDoor, scaledHorizon);
+            DrawTacticalHud(targetGraphics, targetW, targetH, player, weapon, enemies, hitMarkerTimer, killfeed, roundTimerRemaining, nearDoor);
         }
 
         private unsafe void RenderSprites(Player player, List<Enemy> enemies, uint* scan0, int stride, int horizon)
@@ -318,11 +326,10 @@ namespace CS2WinFormsDemo
             float hitMarkerTimer,
             List<string> killfeed,
             float roundTimerRemaining,
-            bool nearDoor,
-            float aimCenterY)
+            bool nearDoor)
         {
             float cx = w / 2f;
-            float cy = aimCenterY; // Follows pitch and vertical look!
+            float cy = h / 2f - weapon.RecoilPitch * 1.2f;
 
             // Dynamic Crosshair
             float spread = 4f + (player.MoveForward || player.MoveBackward || player.StrafeLeft || player.StrafeRight ? 8f : 0f);

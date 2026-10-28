@@ -33,6 +33,7 @@ namespace CS2WinFormsDemo
         private float _roundTimeRemaining = 115f; // 1 min 55 sec, counts down!
         private bool _nearDoor = false;
         private bool _showHelp = true;
+        private bool _isCtrlPressed = false;
 
         public Form1()
         {
@@ -105,6 +106,9 @@ namespace CS2WinFormsDemo
             if (_rotateRightKey) _player.Rotate(2.5 * dt);
             if (_lookUpKey) _player.LookVertical(120f * dt);
             if (_lookDownKey) _player.LookVertical(-120f * dt);
+
+            // Synchronize crouch state seamlessly with Ctrl key or modifier
+            _player.IsCrouching = _isCtrlPressed || (Control.ModifierKeys & Keys.Control) != 0;
 
             // Player physics & movement
             _player.Update(dt);
@@ -245,14 +249,15 @@ namespace CS2WinFormsDemo
                 }
             }
 
-            if (ActiveWeapon.Type == WeaponType.Knife && maxDist > 2.0)
+            if (ActiveWeapon.Type == WeaponType.Knife && maxDist > 2.2)
             {
-                maxDist = 2.0;
+                maxDist = 2.2;
             }
 
             Enemy? hitEnemy = null;
             double closestEnemyDist = maxDist;
             int hitEnemyIndex = -1;
+            bool isHeadshot = false;
 
             for (int i = 0; i < _enemies.Count; i++)
             {
@@ -269,28 +274,46 @@ namespace CS2WinFormsDemo
                     double projY = rayY + dirY * dot;
                     double distToRay = Math.Sqrt((enemy.X - projX) * (enemy.X - projX) + (enemy.Y - projY) * (enemy.Y - projY));
 
-                    if (distToRay < 0.45)
+                    if (distToRay < 0.46)
                     {
-                        closestEnemyDist = dot;
-                        hitEnemy = enemy;
-                        hitEnemyIndex = i + 1;
+                        // Vertical hit check taking pitch, crouch/jump and enemy sprite bounds into account
+                        double spriteHeight = Math.Abs(360.0 / dot);
+                        double enemyCenterY = 180.0 + _player.Pitch + (_player.PosZ * 180.0);
+                        double enemyTop = enemyCenterY - spriteHeight * 0.5;
+                        double enemyBottom = enemyCenterY + spriteHeight * 0.5;
+
+                        // Crosshair aim line in 360p buffer
+                        double aimLineY = 180.0 - (ActiveWeapon.RecoilPitch * 1.0);
+
+                        bool verticalHit = (ActiveWeapon.Type == WeaponType.Knife) ||
+                                           (aimLineY >= enemyTop - 35.0 && aimLineY <= enemyBottom + 35.0);
+
+                        if (verticalHit)
+                        {
+                            closestEnemyDist = dot;
+                            hitEnemy = enemy;
+                            hitEnemyIndex = i + 1;
+
+                            // Precision headshot if aiming at upper 35% of enemy model
+                            if (aimLineY >= enemyTop - 25.0 && aimLineY <= enemyTop + spriteHeight * 0.35)
+                            {
+                                isHeadshot = true;
+                            }
+                        }
                     }
                 }
             }
 
             if (hitEnemy != null)
             {
-                var rnd = new Random();
-                bool headshot = rnd.NextDouble() < 0.35 || (ActiveWeapon.Type == WeaponType.Deagle && closestEnemyDist < 6.0);
-                int damage = ActiveWeapon.Damage * (headshot ? ActiveWeapon.HeadshotMultiplier : 1);
-
+                int damage = ActiveWeapon.Damage * (isHeadshot ? ActiveWeapon.HeadshotMultiplier : 1);
                 bool killed = hitEnemy.TakeDamage(damage);
-                SoundManager.PlayHit(headshot);
-                _hitMarkerTimer = 0.22f;
+                SoundManager.PlayHit(isHeadshot);
+                _hitMarkerTimer = 0.25f;
 
                 if (killed)
                 {
-                    string hsIcon = headshot ? " (HEADSHOT! 🎯)" : "";
+                    string hsIcon = isHeadshot ? " (HEADSHOT! 🎯)" : "";
                     _killfeed.Add($"You [{ActiveWeapon.Name}] Enemy #{hitEnemyIndex}{hsIcon}");
                     _killfeedTimers.Add(4.5f);
                 }
@@ -390,6 +413,7 @@ namespace CS2WinFormsDemo
                     _player.Rotate(dx * _mouseSensitivity);
                     // Moving mouse up decreases dy, so -dy looks up (positive pitch)
                     _player.LookVertical(-dy * 0.85f);
+                    _player.AddMouseSway(dx, dy);
                     ResetCursorToCenter();
                 }
             }
@@ -433,9 +457,12 @@ namespace CS2WinFormsDemo
                     _player.Jump();
                     break;
 
-                // Crouch
+                // Crouch (Ctrl or C)
                 case Keys.ControlKey:
+                case Keys.LControlKey:
+                case Keys.RControlKey:
                 case Keys.C:
+                    _isCtrlPressed = true;
                     _player.IsCrouching = true;
                     break;
 
@@ -490,9 +517,13 @@ namespace CS2WinFormsDemo
                 case Keys.A: _player.StrafeLeft = false; break;
                 case Keys.D: _player.StrafeRight = false; break;
 
+                // Crouch
                 case Keys.ControlKey:
+                case Keys.LControlKey:
+                case Keys.RControlKey:
                 case Keys.C:
-                    _player.IsCrouching = false;
+                    _isCtrlPressed = false;
+                    _player.IsCrouching = (Control.ModifierKeys & Keys.Control) != 0;
                     break;
 
                 case Keys.ShiftKey:
